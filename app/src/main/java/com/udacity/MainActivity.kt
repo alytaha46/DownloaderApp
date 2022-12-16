@@ -18,6 +18,7 @@ import android.widget.RadioButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
@@ -54,17 +55,26 @@ class MainActivity : AppCompatActivity() {
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            custom_button.buttonState= ButtonState.Completed
+            custom_button.buttonState = ButtonState.Completed
             val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
             val query = DownloadManager.Query().setFilterById(id!!)
             val cursor = downloadManager.query(query)
             if (cursor.moveToFirst()) {
                 val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-                var downloadStatus = "Fail"
+                var statusDownload = "Fail"
                 if (DownloadManager.STATUS_SUCCESSFUL == status) {
-                    downloadStatus = "Success"
+                    statusDownload = "Success"
                 }
-                Log.e("TAG", "onReceive: "+downloadStatus )
+                val notificationManager = ContextCompat.getSystemService(
+                    applicationContext,
+                    NotificationManager::class.java
+                ) as NotificationManager
+                notificationManager.sendNotification(
+                    applicationContext.getString(R.string.notification_description),
+                    applicationContext,
+                    file,
+                    statusDownload
+                )
             }
         }
     }
@@ -109,7 +119,8 @@ class MainActivity : AppCompatActivity() {
             "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/refs/heads/master.zip"
         const val RETROFIT_URL =
             "https://github.com/square/retrofit/archive/refs/heads/master.zip"
-        private const val CHANNEL_ID = "channelId"
+        const val CHANNEL_ID = "channelId"
+        const val NOTIFICATION_ID = 0
         private const val CHANNEL_NAME = "channelname"
     }
 
